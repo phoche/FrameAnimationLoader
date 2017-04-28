@@ -201,11 +201,13 @@ public class FrameAnimLoader {
             });
 
             for (File file1 : fileList) {
-                anim.addFrame(file1.getAbsolutePath());
+                String name = file1.getName();
+                if (name.endsWith(".png") || name.endsWith(".jpg")) {
+                    anim.addFrame(file1.getAbsolutePath());
+                }
             }
             anim.setDuration(mDuration);
             anim.beforeStart();
-
         } catch (Exception e) {
         }
         return anim;

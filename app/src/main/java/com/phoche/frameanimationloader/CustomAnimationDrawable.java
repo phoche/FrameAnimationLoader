@@ -103,7 +103,6 @@ public class CustomAnimationDrawable extends AnimationDrawable {
 
     private void addDrawable2Frame(int id, String path) {
         Object key = TextUtils.isEmpty(path) ? id : path;
-//        BitmapDrawable drawable = getDrawableFormCache(key);
         Bitmap bitmap1 = mLruCache.get(key);
         if (null == bitmap1 || bitmap1.isRecycled()) {
             BitmapFactory.Options opts = new BitmapFactory.Options();
@@ -118,7 +117,9 @@ public class CustomAnimationDrawable extends AnimationDrawable {
             BitmapDrawable frame = new BitmapDrawable(null, bitmap);
             addFrame(frame, mDuration);
             Object obj = TextUtils.isEmpty(path) ? id : path;
-            mLruCache.put(obj, bitmap);
+            if (obj != null & bitmap != null) {
+                mLruCache.put(obj, bitmap);
+            }
 
         } else {
             BitmapDrawable drawable = new BitmapDrawable(null, bitmap1);
@@ -143,11 +144,6 @@ public class CustomAnimationDrawable extends AnimationDrawable {
             String path = mIds.get(i);
             addDrawable2Frame(0, path);
         }
-    }
-
-    public BitmapDrawable getDrawableFormCache(Object obj) {
-        BitmapDrawable drawable = mCache.get(obj);
-        return drawable;
     }
 
     @Override
