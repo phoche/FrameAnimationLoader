@@ -127,9 +127,11 @@ public class FrameAnimLoader {
     public static class Builder {
 
         private FrameAnimLoader mFrameAnimLoader;
+        private WeakReference<FrameAnimLoader> mReference;
 
         public Builder(ImageView imageView) {
-            mFrameAnimLoader = new FrameAnimLoader();
+            mReference = new WeakReference<>(new FrameAnimLoader());
+            mFrameAnimLoader = mReference.get();
             mFrameAnimLoader.mView = imageView;
             mFrameAnimLoader.mViewSize = mFrameAnimLoader.getViewSize(imageView);
         }
