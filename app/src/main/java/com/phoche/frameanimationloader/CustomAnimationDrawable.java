@@ -20,6 +20,7 @@ import java.util.List;
 public class CustomAnimationDrawable extends AnimationDrawable {
 
     private Resources mResources;
+    private int mFrameCount;
 
     public interface CallBack {
 
@@ -95,7 +96,9 @@ public class CustomAnimationDrawable extends AnimationDrawable {
     }
 
     private void addFrameFormRes() {
-        for (int i = 0; i < mRes.size(); i++) {
+        mFrameCount = mRes.size();
+        mDuration /= mFrameCount;
+        for (int i = 0; i < mFrameCount; i++) {
             int id = mRes.get(i);
             addDrawable2Frame(id, null);
         }
@@ -107,7 +110,7 @@ public class CustomAnimationDrawable extends AnimationDrawable {
         if (null == bitmap1 || bitmap1.isRecycled()) {
             BitmapFactory.Options opts = new BitmapFactory.Options();
             opts.inJustDecodeBounds = true;
-            decoeBitmap(id, path, opts);
+//            decoeBitmap(id, path, opts);
             opts.inSampleSize = caculateInSampleSize(opts, mViewSize.width, mViewSize.height);
             opts.inJustDecodeBounds = false;
             opts.inDither = false;
@@ -140,7 +143,9 @@ public class CustomAnimationDrawable extends AnimationDrawable {
     }
 
     private void addFrameFormPath() {
-        for (int i = 0; i < mIds.size(); i++) {
+        mFrameCount = mIds.size();
+        mDuration /= mFrameCount;
+        for (int i = 0; i < mFrameCount; i++) {
             String path = mIds.get(i);
             addDrawable2Frame(0, path);
         }

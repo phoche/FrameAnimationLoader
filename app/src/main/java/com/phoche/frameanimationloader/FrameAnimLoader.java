@@ -2,7 +2,7 @@ package com.phoche.frameanimationloader;
 
 import android.os.Handler;
 import android.os.Message;
-import android.support.annotation.DrawableRes;
+import android.support.annotation.ArrayRes;
 import android.util.DisplayMetrics;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -65,7 +65,7 @@ public class FrameAnimLoader {
         }
     }
 
-    public synchronized void startAnim(@DrawableRes final int[] ids) {
+    public synchronized void startAnim(@ArrayRes final int[] ids) {
         acquireSemaphore();
         mBitmapThread = new Thread() {
             @Override
@@ -188,7 +188,7 @@ public class FrameAnimLoader {
 
     private CustomAnimationDrawable getFrameDrawable(String dir) {
         CustomAnimationDrawable anim = new CustomAnimationDrawable(mViewSize);
-        try {
+//        try {
             File file = new File(dir);
             List<File> fileList = Arrays.asList(file.listFiles());
             Collections.sort(fileList, new Comparator<File>() {
@@ -210,8 +210,8 @@ public class FrameAnimLoader {
             }
             anim.setDuration(mDuration);
             anim.beforeStart();
-        } catch (Exception e) {
-        }
+//        } catch (Exception e) {
+//        }
         return anim;
     }
 
