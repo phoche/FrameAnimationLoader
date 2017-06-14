@@ -7,8 +7,8 @@
     android:background="#88000000"
     tools:context="com.phoche.frameanimationloader.MainActivity">
 
-    <ImageView
+    <com.phoche.frameanimationloader.FrameImageView
         android:id="@+id/imageview"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"/>
+        android:layout_width="300dp"
+        android:layout_height="150dp"/>
 </RelativeLayout>

@@ -2,7 +2,7 @@ package com.phoche.frameanimationloader;
 
 import android.os.Handler;
 import android.os.Message;
-import android.support.annotation.ArrayRes;
+import android.text.TextUtils;
 import android.util.DisplayMetrics;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -14,7 +14,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import java.util.concurrent.Semaphore;
 
 /**
  * Create by qinpc on 2017/4/25
@@ -28,24 +27,31 @@ public class FrameAnimLoader {
     private ImageView mView;
     // 动画对应的view的size
     private ViewSize mViewSize;
+    private String mdir;
+    private int[] mResArrs;
 
     private volatile CustomAnimationDrawable mAnim;
     private boolean mOneShot = true;
     private int mDuration;
     private OnFrameAnimListener mOnFrameAnimListener;
-    private Semaphore mSemaphore = new Semaphore(0);
 
     public FrameAnimLoader() {
         init();
     }
 
     private void init() {
-
         mUIHandler = new UIHandler(this);
     }
 
-    public synchronized void startAnim(final String dir) {
-        acquireSemaphore();
+    public void startAnim() {
+        if (!TextUtils.isEmpty(mdir)) {
+            startAnim(mdir);
+        } else if (mResArrs != null && mResArrs.length > 0) {
+            startAnim(mResArrs);
+        }
+    }
+
+    private void startAnim(final String dir) {
         mBitmapThread = new Thread() {
             @Override
             public void run() {
@@ -56,17 +62,8 @@ public class FrameAnimLoader {
         mBitmapThread.start();
     }
 
-    private void acquireSemaphore() {
-        try {
-            if (null != mBitmapThread && mBitmapThread.isAlive()) {
-                mSemaphore.acquire();
-            }
-        } catch (InterruptedException e) {
-        }
-    }
 
-    public synchronized void startAnim(@ArrayRes final int[] ids) {
-        acquireSemaphore();
+    private void startAnim(final int[] ids) {
         mBitmapThread = new Thread() {
             @Override
             public void run() {
@@ -108,7 +105,6 @@ public class FrameAnimLoader {
                         mOnFrameAnimListener.onEnd();
                     }
                     cleanAnim();
-                    mSemaphore.release();
                 }
             }
         });
@@ -119,7 +115,6 @@ public class FrameAnimLoader {
         if (null != mAnim) {
             mView.setImageDrawable(null);
             mAnim.trimCache();
-            mAnim = null;
         }
     }
 
@@ -133,7 +128,9 @@ public class FrameAnimLoader {
             mReference = new WeakReference<>(new FrameAnimLoader());
             mFrameAnimLoader = mReference.get();
             mFrameAnimLoader.mView = imageView;
-            mFrameAnimLoader.mViewSize = mFrameAnimLoader.getViewSize(imageView);
+            if (mFrameAnimLoader.mViewSize == null) {
+                mFrameAnimLoader.mViewSize = mFrameAnimLoader.getViewSize(imageView);
+            }
         }
 
         /**
@@ -160,11 +157,41 @@ public class FrameAnimLoader {
 
         /**
          * 动画结束监听
+         *
          * @param listener
          * @return
          */
         public Builder addEndListener(OnFrameAnimListener listener) {
             mFrameAnimLoader.mOnFrameAnimListener = listener;
+            return this;
+        }
+
+        /**
+         * 添加动画的资源数组
+         *
+         * @param resArrs
+         * @return
+         */
+        public Builder addResourceArr(int[] resArrs) {
+            mFrameAnimLoader.mResArrs = resArrs;
+            mFrameAnimLoader.mdir = null;
+            return this;
+        }
+
+        /**
+         * 添加动画的目录
+         *
+         * @param path
+         * @return
+         */
+        public Builder addAnimDir(String path) {
+            mFrameAnimLoader.mdir = path;
+            mFrameAnimLoader.mResArrs = null;
+            return this;
+        }
+
+        public Builder setViewSize(ViewSize viewSize) {
+            mFrameAnimLoader.mViewSize = viewSize;
             return this;
         }
 
@@ -188,7 +215,7 @@ public class FrameAnimLoader {
 
     private CustomAnimationDrawable getFrameDrawable(String dir) {
         CustomAnimationDrawable anim = new CustomAnimationDrawable(mViewSize);
-//        try {
+        try {
             File file = new File(dir);
             List<File> fileList = Arrays.asList(file.listFiles());
             Collections.sort(fileList, new Comparator<File>() {
@@ -210,19 +237,20 @@ public class FrameAnimLoader {
             }
             anim.setDuration(mDuration);
             anim.beforeStart();
-//        } catch (Exception e) {
-//        }
+        } catch (Exception e) {
+
+        }
         return anim;
     }
 
 
     /**
      * 获取到Imageview的宽高
+     *
      * @param view
      * @return
      */
     private ViewSize getViewSize(ImageView view) {
-        ViewSize viewSize = new ViewSize();
         DisplayMetrics displayMetrics = view.getContext().getResources().getDisplayMetrics();
 
         ViewGroup.LayoutParams params = view.getLayoutParams();
@@ -230,13 +258,12 @@ public class FrameAnimLoader {
         if (width <= 0) width = params.width;
         if (width <= 0) width = getImageViewFieldValue(view, "mMaxWidth");
         if (width <= 0) width = displayMetrics.widthPixels;
-        viewSize.width = width;
 
         int height = view.getHeight();
         if (height <= 0) height = params.height;
         if (height <= 0) height = getImageViewFieldValue(view, "mMaxHeight");
         if (height <= 0) height = displayMetrics.heightPixels;
-        viewSize.height = height;
+        ViewSize viewSize = new ViewSize(width, height);
 
         return viewSize;
     }
@@ -259,8 +286,13 @@ public class FrameAnimLoader {
 
 
     public static class ViewSize {
-        int width;
-        int height;
+        int mWidth;
+        int mHeight;
+
+        public ViewSize(int width, int height) {
+            mWidth = width;
+            mHeight = height;
+        }
     }
 
     public interface OnFrameAnimListener {

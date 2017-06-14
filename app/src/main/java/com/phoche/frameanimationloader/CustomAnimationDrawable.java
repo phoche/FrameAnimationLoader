@@ -36,7 +36,6 @@ public class CustomAnimationDrawable extends AnimationDrawable {
 
     private List<String> mIds = new ArrayList<>();
 
-    private LruCache<Object, BitmapDrawable> mCache;
     private LruCache<Object, Bitmap> mLruCache;
 
     private FrameAnimLoader.ViewSize mViewSize;
@@ -50,7 +49,6 @@ public class CustomAnimationDrawable extends AnimationDrawable {
     private void init() {
         long maxMemory = Runtime.getRuntime().maxMemory();
         int cacheMemory = (int) (maxMemory / 8);
-        mCache = new LruCache<>(cacheMemory);
         mLruCache = new LruCache<>(cacheMemory);
 
     }
@@ -110,8 +108,7 @@ public class CustomAnimationDrawable extends AnimationDrawable {
         if (null == bitmap1 || bitmap1.isRecycled()) {
             BitmapFactory.Options opts = new BitmapFactory.Options();
             opts.inJustDecodeBounds = true;
-//            decoeBitmap(id, path, opts);
-            opts.inSampleSize = caculateInSampleSize(opts, mViewSize.width, mViewSize.height);
+            opts.inSampleSize = caculateInSampleSize(opts, mViewSize.mWidth, mViewSize.mHeight);
             opts.inJustDecodeBounds = false;
             opts.inDither = false;
             opts.inPurgeable = true;
@@ -222,6 +219,5 @@ public class CustomAnimationDrawable extends AnimationDrawable {
 
     public void trimCache() {
         mLruCache.evictAll();
-        mLruCache = null;
     }
 }
