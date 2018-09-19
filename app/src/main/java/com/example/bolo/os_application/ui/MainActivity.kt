@@ -1,9 +1,11 @@
 package com.example.bolo.os_application.ui
 
 import android.Manifest
+import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
+import android.widget.Toast
 import com.example.bolo.os_application.R
 import com.example.bolo.os_application.loader.FrameDispatcher
 import com.example.bolo.os_application.permission.PermissionCheckHelper
@@ -40,8 +42,14 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        mDispatcher?.cancel()
+    }
+
     private fun init() {
         obtainPermission()
+//        openVideo()
     }
 
     private fun copyImage() {
@@ -57,23 +65,23 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private var mIsRunning = false
+
     private fun openVideo() {
         mDispatcher = FrameDispatcher(video_view, image_view)
-//        mDispatcher!!.preLoad()
-//        video_view.setOnInfoListener { mp, what, extra ->
-//            if (what == MediaPlayer.MEDIA_INFO_VIDEO_RENDERING_START) {
-//
-//            }
-//            info("videoInfo **************** what = $what")
-//
-//
-//            true
-//        }
+        mDispatcher!!.preLoad {
+            launch(UI) {
+                if (!mIsRunning) {
+                    video_view.start()
+                    mDispatcher?.start()
+                    mIsRunning = true
+                }
+            }
+        }
 
         val uri = "android.resource://$packageName/${R.raw.frame_test_720}"
         video_view.setVideoPath(uri)
-        video_view.start()
-        mDispatcher?.start()
+//        video_view.start()
     }
 
 
@@ -85,8 +93,13 @@ class MainActivity : AppCompatActivity() {
                     .setRequestCode(0)
                     .setRequestPermissions(Manifest.permission.WRITE_EXTERNAL_STORAGE)
                     .setTipMessages("read pic")
-                    .setCallbackListener { _, _, _ ->
-                        copyImage()
+                    .setCallbackListener { requestCode, _, grantResults ->
+                        if (requestCode == 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                            copyImage()
+                        } else {
+                            Toast.makeText(this, R.string.non_permission_tip, Toast.LENGTH_SHORT)
+                                    .show()
+                        }
                     }
                     .build()
             PermissionCheckHelper.instance().requestPermissions(this, requestInfo)

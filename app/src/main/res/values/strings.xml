@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">OS_Application</string>
+    <string name="non_permission_tip">没有权限</string>
 </resources>

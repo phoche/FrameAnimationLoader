@@ -48,7 +48,7 @@ class FrameDispatcher(private val controller: MediaController.MediaPlayerControl
     private val mLruCache: LruCache<Int, Bitmap> by lazy {
         object : LruCache<Int, Bitmap>((Runtime.getRuntime().maxMemory() / 8).toInt()) {
             override fun sizeOf(key: Int?, value: Bitmap?): Int {
-                return value?.byteCount ?: super.sizeOf(key, value)
+                return value?.byteCount?.div(1024) ?: super.sizeOf(key, value)
             }
         }
     }
@@ -73,6 +73,15 @@ class FrameDispatcher(private val controller: MediaController.MediaPlayerControl
 
     private var mPreIndex = -1
 
+    private var mIsFinish = false
+
+    fun cancel() {
+        mIsFinish = true
+        mDisplayHandle.removeMessages(MSG_PRE_LOAD)
+        mPreloadJob?.cancel()
+        mDisplayImageJob?.cancel()
+    }
+
     fun start() {
         mDisplayImageJob?.cancel()
         mDisplayImageJob = launch(UI) {
@@ -82,17 +91,22 @@ class FrameDispatcher(private val controller: MediaController.MediaPlayerControl
 
             val currentPosition = controller.currentPosition
             val index = currentPosition / mMillisPercentFPS
-            if (index >= mImageList!!.size) {
+            if (index >= mTotalSize) {
                 imageView.background = null
                 return@launch
             }
 
             if (mPreIndex != index && controller.isPlaying) {
-                info("currentFrame : $index, ---- currentPosition = $currentPosition", TAG)
-                imageView.setImageBitmap(getBitmap(index))
-//                mLruCache.get(index)?.apply {
-//                    imageView.setImageBitmap(this)
-//                }
+
+//                imageView.setImageBitmap(getBitmap(index))
+
+//                val get = mLruCache.get(index)
+//                info("currentFrame : $index, ---- currentPosition = $currentPosition, --bitmap is" +
+//                        " empty : ${get == null}", TAG)
+                mLruCache.get(index).apply {
+
+                    imageView.setImageBitmap(this ?: getBitmap(mImageList!![index], index))
+                }
                 mPreIndex = index
             }
 
@@ -103,19 +117,25 @@ class FrameDispatcher(private val controller: MediaController.MediaPlayerControl
     /**
      * 预加载当前播放时间
      */
-    fun preLoad() {
+    fun preLoad(block: (() -> Unit)? = null) {
+        if (mIsFinish) {
+            return
+        }
         mPreloadJob?.cancel()
         mPreloadJob = launch(CommonPool) {
 
             mImageList?.apply {
                 // 加载当前时间之后两秒的 bitmap
-                info("start cache", TAG)
-                if (mPreIndex > mTotalSize) {
+                info("CacheMaxSize task start cache", TAG)
+
+                val currentPosition = controller.currentPosition
+                val index = currentPosition / mMillisPercentFPS
+                if (index > mTotalSize) {
                     return@launch
                 }
-                info("CacheMaxSize mPreIndex = : $mPreIndex")
-                val index = if (mPreIndex < 0) 0 else mPreIndex
-                val afterPosition = index + mFPS/* * 2*/
+                info("CacheMaxSize mPreIndex = : $index")
+//                val index = if (mPreIndex < 0) 0 else mPreIndex
+                val afterPosition = index + mFPS * 2
                 for (i in index..afterPosition) {
                     if (i >= size) {
                         return@launch
@@ -124,27 +144,32 @@ class FrameDispatcher(private val controller: MediaController.MediaPlayerControl
                     val bitmap = mLruCache.get(i)
                     if (null == bitmap || bitmap.isRecycled) {
                         val file = this[i]
-
-
-                        val opts = BitmapFactory.Options()
-                        decodeBitmap(file, opts)
-                        opts.inJustDecodeBounds = true
-                        opts.inSampleSize = calculateSampleSize(opts, mViewSize.width, mViewSize.height)
-                        opts.inJustDecodeBounds = false
-//                        info("cacheFileName --- : ${file.name}", TAG)
-                        val decodeBitmap = decodeBitmap(file, opts)
-                        info("CacheMaxSize decodeBitmap byteCount = : ${decodeBitmap.byteCount}")
-                        if (decodeBitmap != null) {
-                            mLruCache.put(i, decodeBitmap)
-                            info("CacheMaxSize : ${mLruCache.maxSize()}, \n CacheSize : " +
-                                    "${mLruCache.size()} \n index : $i", TAG)
-                        }
+                        getBitmap(file, i)
                     }
                 }
-//                mPosition = afterPosition
-                mDisplayHandle.sendEmptyMessageDelayed(MSG_PRE_LOAD, mPreLoadBitmapDelay)
+                block?.invoke()
+                info("CacheMaxSize task end cache", TAG)
+//                mDisplayHandle.sendEmptyMessageDelayed(MSG_PRE_LOAD, mPreLoadBitmapDelay)
+                mDisplayHandle.sendEmptyMessage(MSG_PRE_LOAD)
             }
         }
+    }
+
+    private fun getBitmap(file: File, i: Int): Bitmap {
+        val opts = BitmapFactory.Options()
+        decodeBitmap(file, opts)
+        opts.inJustDecodeBounds = true
+        opts.inSampleSize = calculateSampleSize(opts, mViewSize.width, mViewSize.height)
+        opts.inJustDecodeBounds = false
+        info("cacheFileName --- : ${file.name}", TAG)
+        val decodeBitmap = decodeBitmap(file, opts)
+        info("CacheMaxSize decodeBitmap byteCount = : ${decodeBitmap.byteCount}")
+        if (decodeBitmap != null) {
+            mLruCache.put(i, decodeBitmap)
+            info("CacheMaxSize : ${mLruCache.maxSize()}, \n CacheSize : " +
+                    "${mLruCache.size()} \n index : $i", TAG)
+        }
+        return decodeBitmap
     }
 
     private fun getBitmap(index: Int): Bitmap? {
@@ -208,6 +233,7 @@ class FrameDispatcher(private val controller: MediaController.MediaPlayerControl
                     mMillisPercentFPS = 1000.div(mFPS)
                     // 计算图片播放的间隔
                     mImageDisplayDelay = 1000.div(this).toLong()
+                    info("fps = $mFPS")
                 }
             }
         } catch (e: Exception) {
@@ -243,6 +269,8 @@ class FrameDispatcher(private val controller: MediaController.MediaPlayerControl
             })
         }
     }
+
+
 
 
     class DisplayHandler(loader: FrameDispatcher) : Handler(Looper.getMainLooper()) {
