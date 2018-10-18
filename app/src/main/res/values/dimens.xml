@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="match_constrain">0dp</dimen>
+    <dimen name="general_button_margin">10dp</dimen>
+</resources>

@@ -12,7 +12,11 @@ import android.widget.ImageView
 import android.widget.MediaController
 import com.example.bolo.os_application.OsApplication
 import com.example.bolo.os_application.R
+import com.example.bolo.os_application.ui.FRAME_COLORFUL_IMAGE_FILE_PATH
+import com.example.bolo.os_application.ui.FRAME_CONVERT_COMPLETE_FILE_PATH
+import com.example.bolo.os_application.ui.FRAME_MONOCHROME_IMAGE_FILE_PATH
 import com.example.bolo.os_application.utils.calculateImageViewSize
+import com.example.bolo.os_application.utils.calculateSampleSize
 import com.example.bolo.os_application.utils.getImageFileDir
 import com.example.bolo.os_application.utils.info
 import kotlinx.coroutines.experimental.CommonPool
@@ -133,7 +137,7 @@ class FrameDispatcher(private val controller: MediaController.MediaPlayerControl
                 if (index > mTotalSize) {
                     return@launch
                 }
-                info("CacheMaxSize mPreIndex = : $index")
+                info("CacheMaxSize mPreIndex = : $index, currentPosition = $currentPosition")
 //                val index = if (mPreIndex < 0) 0 else mPreIndex
                 val afterPosition = index + mFPS * 2
                 for (i in index..afterPosition) {
@@ -147,23 +151,28 @@ class FrameDispatcher(private val controller: MediaController.MediaPlayerControl
                         getBitmap(file, i)
                     }
                 }
-                block?.invoke()
                 info("CacheMaxSize task end cache", TAG)
+//                block?.apply {
+//                    invoke()
+//                    return@launch
+//                }
+
+                block?.invoke()
+
 //                mDisplayHandle.sendEmptyMessageDelayed(MSG_PRE_LOAD, mPreLoadBitmapDelay)
-                mDisplayHandle.sendEmptyMessage(MSG_PRE_LOAD)
             }
         }
     }
 
-    private fun getBitmap(file: File, i: Int): Bitmap {
+    private fun getBitmap(file: File, i: Int): Bitmap? {
         val opts = BitmapFactory.Options()
-        decodeBitmap(file, opts)
+//        decodeBitmap(file, opts)
         opts.inJustDecodeBounds = true
-        opts.inSampleSize = calculateSampleSize(opts, mViewSize.width, mViewSize.height)
+        opts.inSampleSize = opts.calculateSampleSize(mViewSize.width, mViewSize.height)
         opts.inJustDecodeBounds = false
         info("cacheFileName --- : ${file.name}", TAG)
         val decodeBitmap = decodeBitmap(file, opts)
-        info("CacheMaxSize decodeBitmap byteCount = : ${decodeBitmap.byteCount}")
+        info("CacheMaxSize decodeBitmap byteCount = : ${decodeBitmap?.byteCount}")
         if (decodeBitmap != null) {
             mLruCache.put(i, decodeBitmap)
             info("CacheMaxSize : ${mLruCache.maxSize()}, \n CacheSize : " +
@@ -180,7 +189,7 @@ class FrameDispatcher(private val controller: MediaController.MediaPlayerControl
                 if (null == bitmap || bitmap.isRecycled) {
                     val opts = BitmapFactory.Options()
                     opts.inJustDecodeBounds = true
-                    opts.inSampleSize = calculateSampleSize(opts, mViewSize.width, mViewSize.height)
+                    opts.inSampleSize = opts.calculateSampleSize(mViewSize.width, mViewSize.height)
                     opts.inJustDecodeBounds = false
                     val file = it[index]
                     info("cacheFileName --- : ${file.name}", TAG)
@@ -194,25 +203,11 @@ class FrameDispatcher(private val controller: MediaController.MediaPlayerControl
         return bgBitmap
     }
 
-    private fun decodeBitmap(file: File, opts: BitmapFactory.Options): Bitmap {
+    private fun decodeBitmap(file: File, opts: BitmapFactory.Options): Bitmap? {
         opts.inPreferredConfig = Bitmap.Config.RGB_565
-        return BitmapFactory.decodeFile(file.absolutePath, opts)
-    }
-
-
-    private fun calculateSampleSize(options: BitmapFactory.Options, reqWidth: Int, reqHeight: Int)
-            : Int {
-        val width = options.outWidth
-        val height = options.outHeight
-
-        var inSampleSize = 1
-        if (width > reqWidth || height > reqHeight) {
-            val widthRound = Math.round(width * 1f / reqWidth)
-            val heightRound = Math.round(height * 1f / reqWidth)
-
-            inSampleSize = Math.max(widthRound, heightRound)
-        }
-        return inSampleSize + 1
+        val absolutePath = file.absolutePath
+        info("file.absolutePath = $absolutePath")
+        return BitmapFactory.decodeFile(absolutePath, opts)
     }
 
     /**
@@ -244,7 +239,7 @@ class FrameDispatcher(private val controller: MediaController.MediaPlayerControl
      * 获取图片文件
      */
     private fun initImageFiles() {
-        getImageFileDir()?.apply {
+        File(FRAME_CONVERT_COMPLETE_FILE_PATH)?.apply {
             val pattern = Pattern.compile("(\\d+)\\..*")
             mImageList = listFiles()
             mImageList?.sortWith(Comparator { o1, o2 ->
@@ -269,8 +264,6 @@ class FrameDispatcher(private val controller: MediaController.MediaPlayerControl
             })
         }
     }
-
-
 
 
     class DisplayHandler(loader: FrameDispatcher) : Handler(Looper.getMainLooper()) {

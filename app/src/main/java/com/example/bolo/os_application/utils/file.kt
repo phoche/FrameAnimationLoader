@@ -5,6 +5,7 @@ import android.os.Environment
 import android.os.Environment.MEDIA_MOUNTED
 import android.support.annotation.WorkerThread
 import com.example.bolo.os_application.OsApplication
+import com.example.bolo.os_application.ui.FRAME_CONVERT_COMPLETE_FILE_PATH
 import java.io.Closeable
 import java.io.File
 import java.io.FileOutputStream
@@ -53,26 +54,8 @@ fun copyImageFromAssets(block: () -> Unit) {
     }
     info("copy task start_______________")
 
-    val pattern = Pattern.compile("(\\d+)\\..*")
-    list?.sortWith(Comparator { o1, o2 ->
+    list?.sortWithNatureIndex()
 
-        val matcherO1 = pattern.matcher(o1)
-        val matcherO2 = pattern.matcher(o2)
-
-        var indexO1 = 0
-        var indexO2 = 0
-        if (matcherO1.find() && matcherO2.find()) {
-            indexO1 = matcherO1.group(1).toInt()
-            indexO2 = matcherO2.group(1).toInt()
-        }
-
-        val i = when {
-            indexO1 > indexO2 -> 1
-            indexO1 == indexO2 -> 0
-            else -> -1
-        }
-        i
-    })
 
     list.forEach {
         it?.let {
@@ -117,6 +100,7 @@ fun getImageFileDir(): File? {
     }
 }
 
+
 private fun hasExternalStoragePermission(): Boolean {
     return OsApplication.mApplication
             .checkCallingOrSelfPermission(EXTERNAL_STORAGE_PERMISSION) == PackageManager.PERMISSION_GRANTED
@@ -127,5 +111,28 @@ inline fun Closeable?.closeQuietly() {
         this?.close()
     } catch (e: Exception) {
     }
+}
+
+inline fun Array<String>.sortWithNatureIndex() {
+    val pattern = Pattern.compile("(\\d+)\\..*")
+    sortWith(Comparator { o1, o2 ->
+
+        val matcherO1 = pattern.matcher(o1)
+        val matcherO2 = pattern.matcher(o2)
+
+        var indexO1 = 0
+        var indexO2 = 0
+        if (matcherO1.find() && matcherO2.find()) {
+            indexO1 = matcherO1.group(1).toInt()
+            indexO2 = matcherO2.group(1).toInt()
+        }
+
+        val i = when {
+            indexO1 > indexO2 -> 1
+            indexO1 == indexO2 -> 0
+            else -> -1
+        }
+        i
+    })
 }
 

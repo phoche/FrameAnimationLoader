@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.example.bolo.os_application.ui.HandleVideoActivity">
+
+    <TextView
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        android:layout_margin="@dimen/general_button_margin"
+        android:id="@+id/tv_video_1"
+        android:text="@string/waiting_parse_video_1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
+
+    <TextView
+        android:id="@id/tv_video_2"
+        android:layout_margin="@dimen/general_button_margin"
+        app:layout_constraintTop_toBottomOf="@+id/tv_video_1"
+        app:layout_constraintLeft_toLeftOf="parent"
+        android:text="@string/waiting_parse_video_2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
+
+    <Button
+        android:id="@+id/bt_start_handle"
+        android:text="@string/start_handle"
+        app:layout_constraintTop_toBottomOf="@+id/tv_video_2"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        android:layout_margin="@dimen/general_button_margin"
+        android:layout_width="@dimen/match_constrain"
+        android:layout_height="wrap_content"/>
+
+    <com.shuyu.gsyvideoplayer.video.StandardGSYVideoPlayer
+        android:id="@+id/gsy_video"
+        app:layout_constraintTop_toBottomOf="@+id/bt_start_handle"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/iv_parse_result"
+        android:layout_width="@dimen/match_constrain"
+        android:layout_height="@dimen/match_constrain"/>
+
+    <ImageView
+        android:id="@+id/iv_parse_result"
+        app:layout_constraintTop_toBottomOf="@+id/gsy_video"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:layout_width="@dimen/match_constrain"
+        android:layout_height="@dimen/match_constrain"/>
+
+</android.support.constraint.ConstraintLayout>

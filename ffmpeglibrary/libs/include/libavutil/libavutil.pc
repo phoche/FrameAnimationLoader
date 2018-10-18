@@ -1,0 +1,14 @@
+prefix=/Users/bolo/Documents/develop/sdk/ffmpeg-4.0.2/android
+exec_prefix=${prefix}
+libdir=/Users/bolo/Documents/develop/sdk/ffmpeg-4.0.2/android/lib
+includedir=/Users/bolo/Documents/develop/sdk/ffmpeg-4.0.2/android/include
+
+Name: libavutil
+Description: FFmpeg utility library
+Version: 56.14.100
+Requires: 
+Requires.private: 
+Conflicts:
+Libs: -L${libdir}  -lavutil 
+Libs.private: -pthread -lm
+Cflags: -I${includedir}

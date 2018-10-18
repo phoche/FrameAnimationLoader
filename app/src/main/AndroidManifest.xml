@@ -2,9 +2,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
           package="com.example.bolo.os_application">
 
-    <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
 
     <application
         android:name=".OsApplication"
@@ -14,17 +14,32 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".ui.MainActivity"
-                  android:screenOrientation="landscape">
+        <activity
+            android:name=".ui.VideoPlayerActivity"
+            android:screenOrientation="landscape">
+        </activity>
+        <activity
+            android:name=".ui.PermissionHandlerActivity"
+            android:screenOrientation="portrait"/>
+        <activity
+            android:name=".ui.MainActivity"
+            android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
 
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
-
-        <activity android:name=".ui.PermissionHandlerActivity"
-            android:screenOrientation="portrait"/>
+        <activity
+            android:name=".ui.HandleVideoActivity"
+            android:screenOrientation="portrait">
+        </activity>
+        <activity android:name=".ui.HandleImageTestActivity"
+                  android:screenOrientation="portrait">
+        </activity>
+        <activity android:name=".ui.HandleImageActivity"
+                  android:screenOrientation="portrait">
+        </activity>
     </application>
 
 </manifest>

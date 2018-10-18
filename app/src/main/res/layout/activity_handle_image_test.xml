@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.example.bolo.os_application.ui.HandleImageTestActivity">
+
+    <ImageView
+        android:scaleType="fitXY"
+        app:layout_constraintBottom_toTopOf="@+id/iv_colorful"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:id="@+id/iv_monochrome"
+        android:layout_width="@dimen/match_constrain"
+        android:layout_height="@dimen/match_constrain"/>
+
+    <ImageView
+        android:scaleType="fitXY"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/tv_covert_completed"
+        app:layout_constraintTop_toBottomOf="@+id/iv_monochrome"
+        android:id="@+id/iv_colorful"
+        android:layout_width="@dimen/match_constrain"
+        android:layout_height="@dimen/match_constrain"/>
+
+    <TextView
+        app:layout_constraintBottom_toTopOf="@+id/iv_after"
+        app:layout_constraintTop_toBottomOf="@+id/iv_colorful"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        android:text="@string/convert_text"
+        android:id="@+id/tv_covert_completed"
+        android:layout_width="@dimen/match_constrain"
+        android:layout_height="wrap_content"/>
+
+    <ImageView
+        android:scaleType="fitXY"
+        app:layout_constraintTop_toBottomOf="@+id/tv_covert_completed"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        android:id="@+id/iv_after"
+        android:layout_width="@dimen/match_constrain"
+        android:layout_height="@dimen/match_constrain"/>
+
+
+
+</android.support.constraint.ConstraintLayout>

@@ -1,0 +1,26 @@
+ext {
+
+    androidBuildToolsVersion = '27.0.2'
+    androidMinSdkVersion = 16
+    androidTargetSdkVersion = 27
+    androidCompileSdkVersion = 27
+    supportLibraryVersion = '27.0.2'
+
+    kotlin_version = '1.2.61'
+    kotlin_coroutines = '0.24.0'
+
+
+    androidDependencies = [
+            appcompat_v7: "com.android.support:appcompat-v7:$supportLibraryVersion",
+            support_v4  : "com.android.support:support-v4:$supportLibraryVersion",
+            support_media_compat : "com.android.support:support-media-compat:$supportLibraryVersion"
+    ]
+
+    kotlinDependencies = [
+            kotlin_stdlib_jdk7 : "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version",
+            kotlin_coroutines_android : "org.jetbrains.kotlinx:kotlinx-coroutines-android:$kotlin_coroutines",
+            kotlin_coroutines_core : "org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlin_coroutines",
+    ]
+
+
+}

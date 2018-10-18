@@ -1,1 +1,4 @@
-include ':app'
+include ':app', ':ffmpeglibrary'
+//include ':ffmpegmetadataretriever-master'
+//include ':library'
+//include ':openCVLibrary343'
