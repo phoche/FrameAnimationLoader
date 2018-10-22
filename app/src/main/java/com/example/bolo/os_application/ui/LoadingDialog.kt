@@ -11,10 +11,18 @@ import android.widget.ProgressBar
  */
 class LoadingDialog : DialogFragment() {
 
+    var mMessage: String = "task is running"
+
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         return context?.let {
             val view = ProgressBar(it)
-            AlertDialog.Builder(it).setView(view).create()
+            AlertDialog
+                    .Builder(it)
+                    .setView(view)
+                    .setMessage(mMessage)
+                    .create()?.apply {
+                setCanceledOnTouchOutside(false)
+            }
         } ?: super.onCreateDialog(savedInstanceState)
     }
 }

@@ -11,9 +11,20 @@ import butterknife.OnClick
 import com.example.bolo.os_application.R
 import com.example.bolo.os_application.permission.PermissionCheckHelper
 import com.example.bolo.os_application.permission.PermissionRequestInfo
-import com.example.bolo.os_application.utils.toast
+import com.example.bolo.os_application.utils.*
+import kotlinx.coroutines.experimental.CommonPool
+import kotlinx.coroutines.experimental.android.UI
+import kotlinx.coroutines.experimental.launch
+import java.io.File
+
+
+const val natantVideoName = "supernatant.mp4"
+const val natantVideoCoverName = "supernatant_cover.mp4"
+const val externalVideoPath = "ad_video"
+
 
 class MainActivity : BaseActivity() {
+
 
     override fun init() {
         obtainPermission()
@@ -47,11 +58,36 @@ class MainActivity : BaseActivity() {
                     .setTipMessages("read file", "write file")
                     .setCallbackListener { requestCode, _, grantResults ->
                         if (requestCode != 0 || grantResults[0] != PackageManager
-                                        .PERMISSION_GRANTED)
+                                        .PERMISSION_GRANTED) {
+
                             toast { res = R.string.non_permission_tip }
+                        } else {
+
+                            copyVideoFile()
+                        }
                     }
                     .build()
             PermissionCheckHelper.instance().requestPermissions(this, requestInfo)
+        } else {
+            copyVideoFile()
+        }
+    }
+
+    private fun copyVideoFile() {
+        showLoading()
+        launch(CommonPool) {
+            mutableMapOf(
+                    natantVideoName to getCacheDirectory().absolutePath +
+                            File.separator + externalVideoPath,
+                    natantVideoCoverName to getCacheDirectory().absolutePath +
+                            File.separator + externalVideoPath).forEach {
+                copyFileFromAssets(it.key, it.value)
+            }
+            info("copy task complete", copyVideoTaskTag)
+            launch(UI) {
+                hideLoading()
+            }
         }
     }
 }
+

@@ -5,10 +5,10 @@ import android.os.Environment
 import android.os.Environment.MEDIA_MOUNTED
 import android.support.annotation.WorkerThread
 import com.example.bolo.os_application.OsApplication
-import com.example.bolo.os_application.ui.FRAME_CONVERT_COMPLETE_FILE_PATH
 import java.io.Closeable
 import java.io.File
 import java.io.FileOutputStream
+import java.io.InputStream
 import java.util.regex.Pattern
 
 /**
@@ -16,15 +16,40 @@ import java.util.regex.Pattern
  */
 private const val EXTERNAL_STORAGE_PERMISSION = "android.permission.WRITE_EXTERNAL_STORAGE"
 
-private const val ASSETS_IMAGE_FILE = "image1"
-//private const val ASSETS_IMAGE_FILE = "image"
+private const val ASSETS_IMAGE_FILE = "image"
 
-fun getFileDirectory(): File? {
+private const val FILE_EXTERNAL_ANDROID_PATH = "Android"
+private const val FILE_EXTERNAL_ANDROID_DATA_PATH = "data"
+private const val FILE_EXTERNAL_ANDROID_DATA_CACHE = "cache"
+private const val FILE_EXTERNAL_ANDROID_DATA_FILE = "file"
+
+const val copyVideoTaskTag = "CopyVideoTask"
+
+fun getFileDirectory(): File {
     return if (existSDCard() && hasExternalStoragePermission()) {
-        val dataDir = File(File(Environment.getExternalStorageDirectory(), "Android"), "data")
-        File(File(dataDir, OsApplication.mApplication.packageName), "file")
+        val dataDir = File(File(Environment.getExternalStorageDirectory(),
+                FILE_EXTERNAL_ANDROID_PATH), FILE_EXTERNAL_ANDROID_DATA_PATH)
+        File(File(dataDir, OsApplication.mApplication.packageName),
+                FILE_EXTERNAL_ANDROID_DATA_FILE).apply {
+            if (!exists()) {
+                mkdirs()
+            }
+        }
     } else {
         OsApplication.mApplication.filesDir
+    }
+}
+
+fun getCacheDirectory(): File {
+    return if (existSDCard() && hasExternalStoragePermission()) {
+        val dataDir = File(File(Environment.getExternalStorageDirectory(), FILE_EXTERNAL_ANDROID_PATH), FILE_EXTERNAL_ANDROID_DATA_PATH)
+        File(File(dataDir, OsApplication.mApplication.packageName), FILE_EXTERNAL_ANDROID_DATA_CACHE).apply {
+            if (!exists()) {
+                mkdirs()
+            }
+        }
+    } else {
+        OsApplication.mApplication.cacheDir
     }
 }
 
@@ -38,7 +63,45 @@ fun existSDCard(): Boolean {
     return MEDIA_MOUNTED == externalStorageState
 }
 
-class FileString(val name: String)
+fun copyFileFromAssets(originFilename: String, targetFilePath: String) {
+    var ins: InputStream? = null
+    var fos: FileOutputStream? = null
+    try {
+        val file = File(targetFilePath).let {
+            if (!it.exists()) {
+                it.mkdirs()
+            }
+            File(it, originFilename)
+        }
+        if (file.exists()) {
+            return
+        }
+
+        ins = OsApplication.mApplication.assets.open(originFilename)
+        if (ins != null) {
+            fos = FileOutputStream(file)
+            do {
+                val buffer = ByteArray(8192)
+                val count = ins.read(buffer)
+                if (count <= 0) {
+                    break
+                }
+                fos?.write(buffer, 0, count)
+            } while (true)
+
+            info("copy success", copyVideoTaskTag)
+        }
+    } catch (e: Exception) {
+        toast {
+            text = "copy file error"
+        }
+        error("copy file error : [${e.message}]", copyVideoTaskTag)
+    } finally {
+        ins.closeQuietly()
+        fos.closeQuietly()
+    }
+
+}
 
 @WorkerThread
 fun copyImageFromAssets(block: () -> Unit) {

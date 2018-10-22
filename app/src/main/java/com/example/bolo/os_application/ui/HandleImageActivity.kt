@@ -23,7 +23,22 @@ import java.io.FileOutputStream
 
 class HandleImageActivity : BaseActivity() {
 
-    private val mDiaplayTag = "Display Completed Image"
+    private val mNatantVideoFile: File by lazy {
+        File(getCacheDirectory(), externalVideoPath +
+                File.separator + FRAME_COLORFUL_IMAGE_FILE_PATH)
+    }
+
+    private val mNatantCoverVideoFile: File by lazy {
+        File(getCacheDirectory(), externalVideoPath
+                + File.separator + FRAME_MONOCHROME_IMAGE_FILE_PATH)
+    }
+
+    private val mFrameConvertFilePath: String by lazy {
+        getCacheDirectory().absolutePath + File.separator + externalVideoPath +
+                File.separator + FRAME_CONVERT_COMPLETE_FILE_PATH
+    }
+
+    private val mDisplayTag = "DisplayCompletedImage"
 
     @BindView(R.id.iv_completed)
     lateinit var mCompletedImg: ImageView
@@ -42,18 +57,28 @@ class HandleImageActivity : BaseActivity() {
 
     @OnClick(R.id.bt_start_handle)
     fun onClick() {
-        val colorFulImgFile = File(FRAME_COLORFUL_IMAGE_FILE_PATH)
-        val monochromeImgFile = File(FRAME_MONOCHROME_IMAGE_FILE_PATH)
+
+        val colorfulList = mNatantVideoFile.list()
+        val monochromeList = mNatantCoverVideoFile.list()
 
 
-        val colorfulList = colorFulImgFile.list()
-        val monochromeList = monochromeImgFile.list()
+        val list = mNatantVideoFile.list()
+        val list1 = mNatantCoverVideoFile.list()
+        if ((mNatantVideoFile.exists() && mNatantCoverVideoFile.exists()) &&
+                list.isNotEmpty() && list1.isNotEmpty() &&
+                list.size == list1.size) {
+            return
+        }
+
+        mNatantVideoFile.deleteRecursively()
+        mNatantCoverVideoFile.deleteRecursively()
+
+        mNatantVideoFile.mkdirs()
+        mNatantCoverVideoFile.mkdirs()
 
         colorfulList.sortWithNatureIndex()
         monochromeList.sortWithNatureIndex()
 
-//        val options = BitmapFactory.Options()
-//        options.inPreferredConfig = Bitmap.Config.RGB_565
         if ((colorfulList.isNotEmpty() && monochromeList.isNotEmpty()) &&
                 colorfulList.size == monochromeList.size) {
 
@@ -61,28 +86,23 @@ class HandleImageActivity : BaseActivity() {
             launch(CommonPool) {
                 val opts = BitmapFactory.Options()
                 opts.inJustDecodeBounds = true
-                opts.inSampleSize = opts.calculateSampleSize(mImageSize.width, mImageSize.height)
+                opts.inSampleSize = 2/*opts.calculateSampleSize(mImageSize.width, mImageSize
+                .height)*/
                 opts.inJustDecodeBounds = false
 
-                val resultFile = File(FRAME_CONVERT_COMPLETE_FILE_PATH)
+                val resultFile = File(mFrameConvertFilePath)
                 if (!resultFile.exists()) {
                     resultFile.mkdirs()
                 }
 
-//                for ((index, value) in colorfulList.withIndex()) {
-//
-//
-//                }
 
                 colorfulList.forEachIndexed { index, path ->
 
-                    //                    val colorfulIs = FileInputStream(path)
+                    val colorfulImgPath = "${mNatantVideoFile.absolutePath}${File.separator}$path"
+                    val colorfulBitmap = BitmapFactory.decodeFile(colorfulImgPath, opts)
 
-                    val colorfulImgPath = "$FRAME_COLORFUL_IMAGE_FILE_PATH${File.separator}$path"
-                    val colorfulBitmap = BitmapFactory.decodeFile(colorfulImgPath/*, opts*/)
-
-                    val monochromeImgPath = "$FRAME_MONOCHROME_IMAGE_FILE_PATH${File.separator}${monochromeList[index]}"
-                    val monochromeBitmap = BitmapFactory.decodeFile(monochromeImgPath/*, opts*/)
+                    val monochromeImgPath = "${mNatantCoverVideoFile.absolutePath}${File.separator}${monochromeList[index]}"
+                    val monochromeBitmap = BitmapFactory.decodeFile(monochromeImgPath, opts)
 
                     info("colorfulPath : $colorfulImgPath; monochromePath : $monochromeImgPath")
 
@@ -95,24 +115,15 @@ class HandleImageActivity : BaseActivity() {
                     val resultBitmap = gpuImage.bitmapWithFilterApplied
 
 
-                    info("正在保存第 ${index + 1} 张图片", mDiaplayTag)
-                    val fos = FileOutputStream(FRAME_CONVERT_COMPLETE_FILE_PATH +
+                    info("正在保存第 ${index + 1} 张图片", mDisplayTag)
+                    val fos = FileOutputStream(mFrameConvertFilePath +
                             File.separator + path.replaceAfter(".", "webp"))
                     resultBitmap.compress(Bitmap.CompressFormat.WEBP, 100, fos)
                     fos.flush()
                     fos.closeQuietly()
-
-//                    mResultBitmap = gpuImage.bitmapWithFilterApplied
-//                    launch(UI) {
-//                        mCompletedImg.setImageBitmap(null)
-//                        mCompletedImg.setImageBitmap(gpuImage.bitmapWithFilterApplied)
-//                    }
-//                    colorfulIs.closeQuietly()
-//                    monochromeIs.closeQuietly()
-//                    colorfulBitmap.recycle()
-//                    monochromeBitmap.recycle()
                 }
                 launch(UI) {
+                    toast { text = "mission completed" }
                     hideLoading()
                 }
             }
@@ -120,6 +131,7 @@ class HandleImageActivity : BaseActivity() {
     }
 
     override fun init() {
+
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {

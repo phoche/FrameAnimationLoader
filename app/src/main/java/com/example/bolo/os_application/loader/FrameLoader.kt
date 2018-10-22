@@ -12,12 +12,11 @@ import android.widget.ImageView
 import android.widget.MediaController
 import com.example.bolo.os_application.OsApplication
 import com.example.bolo.os_application.R
-import com.example.bolo.os_application.ui.FRAME_COLORFUL_IMAGE_FILE_PATH
 import com.example.bolo.os_application.ui.FRAME_CONVERT_COMPLETE_FILE_PATH
-import com.example.bolo.os_application.ui.FRAME_MONOCHROME_IMAGE_FILE_PATH
+import com.example.bolo.os_application.ui.externalVideoPath
 import com.example.bolo.os_application.utils.calculateImageViewSize
 import com.example.bolo.os_application.utils.calculateSampleSize
-import com.example.bolo.os_application.utils.getImageFileDir
+import com.example.bolo.os_application.utils.getCacheDirectory
 import com.example.bolo.os_application.utils.info
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.Job
@@ -239,7 +238,12 @@ class FrameDispatcher(private val controller: MediaController.MediaPlayerControl
      * 获取图片文件
      */
     private fun initImageFiles() {
-        File(FRAME_CONVERT_COMPLETE_FILE_PATH)?.apply {
+        val mFrameConvertFilePath = getCacheDirectory().absolutePath +
+                File.separator + externalVideoPath +
+                File.separator + FRAME_CONVERT_COMPLETE_FILE_PATH
+
+
+        File(mFrameConvertFilePath)?.apply {
             val pattern = Pattern.compile("(\\d+)\\..*")
             mImageList = listFiles()
             mImageList?.sortWith(Comparator { o1, o2 ->

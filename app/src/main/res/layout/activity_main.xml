@@ -18,12 +18,22 @@
         android:layout_height="wrap_content"/>
 
     <Button
+        android:id="@+id/bt_handle_image"
+        android:text="@string/text_handle_image"
+        android:layout_margin="@dimen/general_button_margin"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/bt_handle_video"
+        android:layout_width="@dimen/match_constrain"
+        android:layout_height="wrap_content"/>
+
+    <Button
         android:id="@+id/bt_play_video"
         android:text="@string/text_play_video"
         android:layout_margin="@dimen/general_button_margin"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/bt_handle_video"
+        app:layout_constraintTop_toBottomOf="@+id/bt_handle_image"
         android:layout_width="@dimen/match_constrain"
         android:layout_height="wrap_content"/>
 
@@ -36,16 +46,4 @@
         app:layout_constraintTop_toBottomOf="@+id/bt_play_video"
         android:layout_width="@dimen/match_constrain"
         android:layout_height="wrap_content"/>
-
-    <Button
-        android:id="@+id/bt_handle_image"
-        android:text="@string/text_handle_image"
-        android:layout_margin="@dimen/general_button_margin"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/bt_handle_image_test"
-        android:layout_width="@dimen/match_constrain"
-        android:layout_height="wrap_content"/>
-
-
 </android.support.constraint.ConstraintLayout>

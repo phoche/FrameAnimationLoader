@@ -11,3 +11,7 @@ const val DEFAULT_LOG_TAG = "OS_Application"
 fun info(msg: String?, tag: String = DEFAULT_LOG_TAG) {
     Log.i(tag, msg)
 }
+
+fun error(msg: String?, tag: String = DEFAULT_LOG_TAG) {
+    Log.e(tag, msg)
+}

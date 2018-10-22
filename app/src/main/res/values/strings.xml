@@ -1,12 +1,13 @@
 <resources>
     <string name="app_name">OS_Application</string>
     <string name="non_permission_tip">没有权限</string>
-    <string name="text_handle_video">Parse Video</string>
-    <string name="text_play_video">Play Video</string>
+    <string name="text_handle_video">step 1: Parse Video</string>
+    <string name="text_play_video">step 3: Play Video</string>
     <string name="start_handle">Start</string>
     <string name="waiting_parse_video_1">video_cover_res : supernatant_cover.mp4</string>
     <string name="waiting_parse_video_2">video_res : supernatant.mp4</string>
     <string name="convert_text">Convert Completed : </string>
     <string name="text_handle_image_test">Handle Image Test</string>
-    <string name="text_handle_image">Handle Image</string>
+    <string name="text_handle_image">step 2: Handle Image</string>
+    <string name="parse_video_complete">视频解析完成</string>
 </resources>

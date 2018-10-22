@@ -29,7 +29,10 @@ abstract class BaseActivity : AppCompatActivity() {
         }
     }
 
-    protected fun showLoading() {
+    protected fun showLoading(msg: String? = null) {
+        msg?.let {
+            mLoadingDialog.mMessage = msg
+        }
         mLoadingDialog.show(supportFragmentManager, "loading")
     }
 

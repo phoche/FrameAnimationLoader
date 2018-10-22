@@ -1,41 +1,61 @@
 package com.example.bolo.os_application.ui
 
 import android.os.Bundle
-import android.widget.ImageView
 import android.widget.Toast
 import butterknife.BindView
 import butterknife.ButterKnife
 import butterknife.OnClick
 import com.bolo.ffmpeglibrary.FFmpegUtil
 import com.example.bolo.os_application.R
+import com.example.bolo.os_application.utils.getCacheDirectory
 import com.example.bolo.os_application.utils.info
 import com.example.bolo.os_application.utils.toast
 import com.shuyu.gsyvideoplayer.video.StandardGSYVideoPlayer
 import kotlinx.coroutines.experimental.CommonPool
+import kotlinx.coroutines.experimental.CoroutineStart
 import kotlinx.coroutines.experimental.Job
+import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.launch
+import java.io.File
 
-const val FRAME_COLORFUL_IMAGE_FILE_PATH = "/storage/emulated/0/Movies/image"
-const val FRAME_MONOCHROME_IMAGE_FILE_PATH = "/storage/emulated/0/Movies/cover_image"
-const val FRAME_CONVERT_COMPLETE_FILE_PATH = "/storage/emulated/0/Movies/complete_image"
+const val FRAME_COLORFUL_IMAGE_FILE_PATH = "image"
+const val FRAME_MONOCHROME_IMAGE_FILE_PATH = "cover_image"
+const val FRAME_CONVERT_COMPLETE_FILE_PATH = "complete_image"
 
 class HandleVideoActivity : BaseActivity() {
 
-    private val mParseTag = "Parse Video info"
+    private val mNatantVideoFile: File by lazy {
+        File(getCacheDirectory(), externalVideoPath + File.separator + natantVideoName)
+    }
 
-    private lateinit var mVideoCoverUrl: String
-    private lateinit var mVideoUrl: String
+    private val mFrameColorfulImageFilePath: String by lazy {
+        val path = mNatantVideoFile.parent + File.separator + FRAME_COLORFUL_IMAGE_FILE_PATH
+        val file = File(path)
+        if (!file.exists()) {
+            file.mkdirs()
+        }
+        path
+    }
 
-    private val mFPS = 25
+    private val mNatantCoverVideoFile: File by lazy {
+        File(getCacheDirectory(), externalVideoPath + File.separator + natantVideoCoverName)
+    }
+
+    private val mFrameMonochromeImageFilePath: String by lazy {
+        val path = mNatantCoverVideoFile.parent + File.separator + FRAME_MONOCHROME_IMAGE_FILE_PATH
+        val file = File(path)
+        if (!file.exists()) {
+            file.mkdirs()
+        }
+        path
+    }
+
+
+    private val mParseTag = "ParseVideoInfo"
 
     private var mParseVideoJob: Job? = null
 
-    private var mShowImageJob: Job? = null
-
     private var mList = listOf<Job>()
-
-    @BindView(R.id.iv_parse_result)
-    lateinit var mParseResultImg: ImageView
 
     @BindView(R.id.gsy_video)
     lateinit var mGSYVideoView: StandardGSYVideoPlayer
@@ -48,13 +68,12 @@ class HandleVideoActivity : BaseActivity() {
     }
 
     override fun init() {
-//        mVideoCoverUrl = getVideoInRaw(R.raw.supernatant_cover)
-        mVideoCoverUrl = "/storage/emulated/0/Movies/supernatant_cover.mp4"
-        mVideoUrl = getVideoInRaw(R.raw.supernatant)
+        if (!mNatantCoverVideoFile.exists() && !mNatantVideoFile.exists()) {
+            toast { text = "视频文件不存在" }
+        }
 
-        mGSYVideoView.setUp(mVideoCoverUrl, false, "supernatant_cover")
+        mGSYVideoView.setUp(mNatantVideoFile.absolutePath, false, "supernatant")
 
-        toast { text = FFmpegUtil().stringFromJNI() }
     }
 
     @OnClick(R.id.bt_start_handle)
@@ -81,15 +100,36 @@ class HandleVideoActivity : BaseActivity() {
     }
 
     private fun startHandleVideoQuickly() {
-
+        showLoading("正在解析视频......")
         val ffmpegUtil = FFmpegUtil()
+        val completeJob = launch(UI, CoroutineStart.LAZY) {
+            toast { res = R.string.parse_video_complete }
+            hideLoading()
+        }
         mParseVideoJob = launch(CommonPool) {
 
-            val videoUrls = arrayOf("/storage/emulated/0/Movies/supernatant.mp4",
-                    "/storage/emulated/0/Movies/supernatant_cover.mp4")
+            val videoUrls = arrayOf(mNatantVideoFile.absolutePath,
+                    mNatantCoverVideoFile.absolutePath)
 
-            val imagePaths = arrayOf("$FRAME_COLORFUL_IMAGE_FILE_PATH/%09d.png",
-                    "$FRAME_MONOCHROME_IMAGE_FILE_PATH/%09d.png")
+            val colorfulFile = File(mFrameColorfulImageFilePath)
+            val monochromeFile = File(mFrameMonochromeImageFilePath)
+            val list = colorfulFile.list()
+            val list1 = monochromeFile.list()
+            if ((colorfulFile.exists() && monochromeFile.exists()) &&
+                    list.isNotEmpty() && list1.isNotEmpty() &&
+                    list.size == list1.size) {
+                completeJob.join()
+                return@launch
+            }
+
+            colorfulFile.deleteRecursively()
+            monochromeFile.deleteRecursively()
+
+            colorfulFile.mkdirs()
+            monochromeFile.mkdirs()
+
+            val imagePaths = arrayOf("$mFrameColorfulImageFilePath/%09d.png",
+                    "$mFrameMonochromeImageFilePath/%09d.png")
 
             videoUrls.forEachIndexed { index, s ->
                 toast {
@@ -107,7 +147,8 @@ class HandleVideoActivity : BaseActivity() {
                     toast { text = "解析失败" }
                 }
             }
-            info("视频解析完成", mParseTag)
+            info(getString(R.string.parse_video_complete), mParseTag)
+            completeJob.join()
         }
     }
 }
